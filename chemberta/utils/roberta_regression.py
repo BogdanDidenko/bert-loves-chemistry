@@ -142,12 +142,12 @@ class RobertaForRegression(RobertaPreTrainedModel):
         super().__init__(config)
         self.num_labels = config.num_labels
 
-        self.register_buffer("norm_mean", torch.tensor(config.norm_mean))
+        self.register_buffer("norm_mean", torch.tensor(config.norm_mean, dtype=torch.float32))
         # Replace any 0 stddev norms with 1
         self.register_buffer(
             "norm_std",
             torch.tensor(
-                [label_std if label_std != 0 else 1 for label_std in config.norm_std]
+                [label_std if label_std != 0 else 1 for label_std in config.norm_std], dtype=torch.float32
             ),
         )
 

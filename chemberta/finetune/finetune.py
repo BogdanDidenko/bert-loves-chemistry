@@ -200,14 +200,14 @@ def finetune_single_dataset(dataset_name, dataset_type, run_dir, is_molnet):
     torch.manual_seed(FLAGS.seed)
 
     tokenizer = RobertaTokenizerFast.from_pretrained(
-        FLAGS.tokenizer_path, max_len=FLAGS.max_tokenizer_len, use_auth_token=True
+        FLAGS.tokenizer_path, max_len=FLAGS.max_tokenizer_len#, use_auth_token=True
     )
 
     finetune_datasets = get_finetune_datasets(dataset_name, tokenizer, is_molnet)
 
     if FLAGS.pretrained_model_name_or_path:
         config = RobertaConfig.from_pretrained(
-            FLAGS.pretrained_model_name_or_path, use_auth_token=True
+            FLAGS.pretrained_model_name_or_path#, use_auth_token=True
         )
     else:
         config = RobertaConfig(
@@ -242,7 +242,7 @@ def finetune_single_dataset(dataset_name, dataset_type, run_dir, is_molnet):
                 FLAGS.pretrained_model_name_or_path,
                 config=config,
                 state_dict=state_dict,
-                use_auth_token=True,
+                # use_auth_token=True,
             )
             if FLAGS.freeze_base_model:
                 for name, param in model.base_model.named_parameters():
@@ -254,6 +254,7 @@ def finetune_single_dataset(dataset_name, dataset_type, run_dir, is_molnet):
 
     training_args = TrainingArguments(
         evaluation_strategy="epoch",
+        save_strategy="epoch",
         output_dir=run_dir,
         overwrite_output_dir=FLAGS.overwrite_output_dir,
         per_device_eval_batch_size=FLAGS.per_device_eval_batch_size,
@@ -427,7 +428,7 @@ class FinetuneDataset(torch.utils.data.Dataset):
     def __getitem__(self, idx):
         item = {key: torch.tensor(val[idx]) for key, val in self.encodings.items()}
         if self.include_labels and self.labels is not None:
-            item["labels"] = torch.tensor(self.labels[idx])
+            item["labels"] = torch.tensor(self.labels[idx], dtype=torch.float32)
         return item
 
     def __len__(self):
