@@ -50,6 +50,7 @@ from sklearn.metrics import (
     matthews_corrcoef,
     mean_squared_error,
     roc_auc_score,
+    r2_score
 )
 from transformers import RobertaConfig, RobertaTokenizerFast, Trainer, TrainingArguments
 from transformers.trainer_callback import EarlyStoppingCallback
@@ -254,7 +255,8 @@ def finetune_single_dataset(dataset_name, dataset_type, run_dir, is_molnet):
 
     training_args = TrainingArguments(
         evaluation_strategy="epoch",
-        save_strategy="epoch",
+        save_strategy="no",
+        save_total_limit=1,
         output_dir=run_dir,
         overwrite_output_dir=FLAGS.overwrite_output_dir,
         per_device_eval_batch_size=FLAGS.per_device_eval_batch_size,
@@ -277,7 +279,7 @@ def finetune_single_dataset(dataset_name, dataset_type, run_dir, is_molnet):
         return {
             "learning_rate": trial.suggest_float("learning_rate", 1e-6, 1e-4, log=True),
             "num_train_epochs": trial.suggest_int(
-                "num_train_epochs", 1, FLAGS.num_train_epochs_max
+                "num_train_epochs", FLAGS.num_train_epochs_max // 4, FLAGS.num_train_epochs_max
             ),
             "seed": trial.suggest_int("seed", 1, 40),
             "per_device_train_batch_size": trial.suggest_categorical(
@@ -357,7 +359,7 @@ def eval_model(trainer, dataset, dataset_name, dataset_type, output_dir, random_
     elif dataset_type == "regression":
         y_pred = predictions.predictions.flatten()
         metrics = {
-            "pearsonr": pearsonr(y_pred, labels),
+            "r2_score": r2_score(y_pred, labels),
             "rmse": mean_squared_error(y_true=labels, y_pred=y_pred, squared=False),
         }
         sns.regplot(x=y_pred, y=labels)
