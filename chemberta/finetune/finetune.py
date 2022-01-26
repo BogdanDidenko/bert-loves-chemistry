@@ -27,6 +27,7 @@ python finetune.py --datasets=bbbp
 import json
 import os
 import shutil
+import math
 from collections import OrderedDict
 from dataclasses import dataclass
 from glob import glob
@@ -283,7 +284,8 @@ def finetune_single_dataset(dataset_name, dataset_type, run_dir, is_molnet):
             ),
             "seed": trial.suggest_int("seed", 1, 40),
             "per_device_train_batch_size": trial.suggest_categorical(
-                "per_device_train_batch_size", [FLAGS.per_device_train_batch_size]
+                "per_device_train_batch_size",
+                [2**(i+1) for i in range(int(math.log(FLAGS.per_device_train_batch_size, 2)))]
             ),
         }
 
