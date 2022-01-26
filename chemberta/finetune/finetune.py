@@ -361,7 +361,7 @@ def eval_model(trainer, dataset, dataset_name, dataset_type, output_dir, random_
     elif dataset_type == "regression":
         y_pred = predictions.predictions.flatten()
         metrics = {
-            "r2_score": r2_score(y_pred, labels),
+            "r2_score": r2_score(labels, y_pred),
             "rmse": mean_squared_error(y_true=labels, y_pred=y_pred, squared=False),
         }
         sns.regplot(x=y_pred, y=labels)
