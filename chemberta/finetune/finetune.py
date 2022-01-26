@@ -256,7 +256,7 @@ def finetune_single_dataset(dataset_name, dataset_type, run_dir, is_molnet):
     training_args = TrainingArguments(
         evaluation_strategy="epoch",
         save_strategy="no",
-        save_total_limit=1,
+        save_total_limit=2,
         output_dir=run_dir,
         overwrite_output_dir=FLAGS.overwrite_output_dir,
         per_device_eval_batch_size=FLAGS.per_device_eval_batch_size,
@@ -270,9 +270,9 @@ def finetune_single_dataset(dataset_name, dataset_type, run_dir, is_molnet):
         args=training_args,
         train_dataset=finetune_datasets.train_dataset,
         eval_dataset=finetune_datasets.valid_dataset,
-        callbacks=[
-            EarlyStoppingCallback(early_stopping_patience=FLAGS.early_stopping_patience)
-        ],
+        # callbacks=[
+        #     EarlyStoppingCallback(early_stopping_patience=FLAGS.early_stopping_patience)
+        # ],
     )
 
     def custom_hp_space_optuna(trial):
