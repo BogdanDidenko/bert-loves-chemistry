@@ -256,13 +256,13 @@ def finetune_single_dataset(dataset_name, dataset_type, run_dir, is_molnet):
 
     training_args = TrainingArguments(
         evaluation_strategy="epoch",
-        save_strategy="no",
+        save_strategy="epoch",
         save_total_limit=2,
         output_dir=run_dir,
         overwrite_output_dir=FLAGS.overwrite_output_dir,
         per_device_eval_batch_size=FLAGS.per_device_eval_batch_size,
         logging_steps=FLAGS.logging_steps,
-        # load_best_model_at_end=True,
+        load_best_model_at_end=True,
         report_to=None,
     )
 
