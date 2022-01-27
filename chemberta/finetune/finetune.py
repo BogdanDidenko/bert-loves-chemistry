@@ -428,14 +428,15 @@ class FinetuneDatasets:
 class FinetuneDataset(torch.utils.data.Dataset):
     def __init__(self, df, tokenizer, include_labels=True):
 
-        self.encodings = tokenizer(df["smiles"].tolist(), truncation=True, padding=True)
+        self.encodings = tokenizer(df["smiles"].tolist(), truncation=True, padding=True, return_tensors="pt")
+        self.encodings = self.encodings.to(device)
         self.labels = df.iloc[:, 1].values
-        self.include_labels = include_labels
+        self.include_labels = torch.tensor(include_labels, dtype=torch.float32).to(device)
 
     def __getitem__(self, idx):
-        item = {key: torch.tensor(val[idx]).to(device) for key, val in self.encodings.items()}
+        item = {key: val[idx] for key, val in self.encodings.items()}
         if self.include_labels and self.labels is not None:
-            item["labels"] = torch.tensor(self.labels[idx], dtype=torch.float32).to(device)
+            item["labels"] = self.labels[idx]
         return item
 
     def __len__(self):
