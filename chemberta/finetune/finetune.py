@@ -132,7 +132,7 @@ flags.mark_flag_as_required("datasets")
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 os.environ["WANDB_DISABLED"] = "true"
-
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 def main(argv):
     if FLAGS.pretrained_model_name_or_path is None:
@@ -186,7 +186,10 @@ def prune_state_dict(model_dir):
     assert os.path.exists(
         state_dict_path
     ), f"No `pytorch_model.bin` file found in {model_dir}"
-    loaded_state_dict = torch.load(state_dict_path)
+    if torch.cuda.is_available():
+        loaded_state_dict = torch.load(state_dict_path)
+    else:
+        loaded_state_dict = torch.load(state_dict_path, map_location=torch.device('cpu'))
     state_keys = loaded_state_dict.keys()
     keys_to_remove = [
         k for k in state_keys if k.startswith("regression") or k.startswith("norm")
@@ -251,7 +254,7 @@ def finetune_single_dataset(dataset_name, dataset_type, run_dir, is_molnet):
                     param.requires_grad = False
         else:
             model = model_class(config=config)
-
+        model.to(device)
         return model
 
     training_args = TrainingArguments(
@@ -430,9 +433,9 @@ class FinetuneDataset(torch.utils.data.Dataset):
         self.include_labels = include_labels
 
     def __getitem__(self, idx):
-        item = {key: torch.tensor(val[idx]) for key, val in self.encodings.items()}
+        item = {key: torch.tensor(val[idx]).to(device) for key, val in self.encodings.items()}
         if self.include_labels and self.labels is not None:
-            item["labels"] = torch.tensor(self.labels[idx], dtype=torch.float32)
+            item["labels"] = torch.tensor(self.labels[idx], dtype=torch.float32).to(device)
         return item
 
     def __len__(self):
